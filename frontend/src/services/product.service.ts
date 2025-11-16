@@ -1,5 +1,6 @@
 import { Product, Filter } from '@shared/product';
 import { cookies } from 'next/headers';
+import { fetcher, postFetcher } from '@/lib/fetcher';
 
 export interface ProductQueryParams {
   page?: number;
@@ -21,8 +22,6 @@ export interface ProductResponse {
   };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
 async function getLocale(): Promise<string> {
   try {
     const cookieStore = await cookies();
@@ -38,41 +37,21 @@ export const productService = {
     locale?: string
   ): Promise<ProductResponse> => {
     const currentLocale = locale || (await getLocale());
-
-    const response = await fetch(`${API_URL}/v1/products`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept-Language': currentLocale,
-      },
-      body: JSON.stringify(params),
-      cache: 'no-store',
+    return postFetcher<ProductResponse>('/v1/products', params, {
+      'Accept-Language': currentLocale,
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch products');
-    }
-
-    return response.json();
   },
 
-  getProductById: async (
-    id: string,
+  getProductBySku: async (
+    sku: string,
     locale?: string
   ): Promise<{ success: boolean; data: Product }> => {
     const currentLocale = locale || (await getLocale());
-
-    const response = await fetch(`${API_URL}/v1/products/${id}`, {
-      headers: {
+    return fetcher<{ success: boolean; data: Product }>(
+      `/v1/products/sku/${sku}`,
+      {
         'Accept-Language': currentLocale,
-      },
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch product');
-    }
-
-    return response.json();
+      }
+    );
   },
 };

@@ -33,7 +33,7 @@ export interface Image {
 export interface ProductVariant {
   sku?: string;
   key?: string;
-  attributes: ProductAttribute[];
+  attributes: ProductAttribute;
   price?: Price;
   images: Image[];
 }

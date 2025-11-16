@@ -1,5 +1,6 @@
 import { Product } from '@shared/product';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface ProductTileProps {
   product: Product;
@@ -16,9 +17,7 @@ export default function ProductTile({
 
   // Check if product is new arrival from variant attributes
   const isNewArrival =
-    masterVariant?.attributes?.find((attr) => attr['new-arrival'])?.[
-      'new-arrival'
-    ]?.value == true;
+    masterVariant?.attributes?.['new-arrival']?.value === true;
 
   const displayPrice = price
     ? (
@@ -43,7 +42,7 @@ export default function ProductTile({
       : null;
 
   return (
-    <div className="group cursor-pointer">
+    <Link href={product.url} className="group cursor-pointer block">
       <div className="relative aspect-square bg-neutral-100 rounded-lg overflow-hidden mb-3">
         {image ? (
           <Image
@@ -93,6 +92,6 @@ export default function ProductTile({
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

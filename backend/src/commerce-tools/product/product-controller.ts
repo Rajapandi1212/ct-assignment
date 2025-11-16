@@ -27,3 +27,7 @@ export const getProducts = async (
     facets: productRes?.facets || [],
   };
 };
+
+export const getProductBySku = async (sku: string, locale: string) => {
+  return await productRepo.getBySku(sku, locale);
+};

@@ -207,4 +207,23 @@ export class ProductRepository extends BaseRepository {
       facets,
     };
   }
+
+  async getBySku(sku: string, locale: string = 'en-US'): Promise<Product> {
+    const res = await this.requestBuilder()
+      .productProjections()
+      .withKey({ key: sku })
+      .get({
+        queryArgs: {
+          localeProjection: [locale],
+          staged: false,
+          withTotal: false,
+        },
+      })
+      .execute();
+    const product = ProductMapper.ctProductProjectionToProduct(
+      res.body,
+      locale
+    );
+    return product;
+  }
 }

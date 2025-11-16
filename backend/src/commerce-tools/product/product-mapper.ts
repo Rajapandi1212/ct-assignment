@@ -21,9 +21,19 @@ export class ProductMapper {
   ): Product {
     const productProjection =
       ctProduct.productProjection || ({} as ProductProjection);
+    return ProductMapper.ctProductProjectionToProduct(
+      productProjection,
+      locale
+    );
+  }
+
+  static ctProductProjectionToProduct(
+    productProjection: ProductProjection,
+    locale: string
+  ) {
     const name = productProjection?.name?.[locale];
     const key = productProjection?.key;
-    const productId = ctProduct.id;
+    const productId = productProjection.id;
     const slug =
       productProjection?.slug?.[locale] ||
       productProjection?.slug?.[CT_DEFAULT_LOCALE];
@@ -32,7 +42,7 @@ export class ProductMapper {
       productProjection,
       locale
     );
-    const url = `/${slug}/${productProjection?.masterVariant?.sku}`;
+    const url = `/${slug}/${key}`;
 
     return {
       name,
@@ -74,17 +84,16 @@ export class ProductMapper {
     const { country, currency } = getLocaleInfo(locale);
     const sku = ctVariant.sku;
     const key = ctVariant.key;
-    const attributes: ProductAttribute[] =
-      ctVariant.attributes?.map((attribute) => {
+    const attributes: ProductAttribute =
+      ctVariant.attributes?.reduce((acc, attribute) => {
         const name = attribute?.name || '';
         const attributeValue = attribute?.value?.[locale] || attribute?.value;
         const value = attribute?.value?.key || attributeValue || '';
         const label = attribute?.value?.label?.[locale] || attributeValue || '';
 
-        return {
-          [name]: { value, label: label },
-        };
-      }) || [];
+        acc[name] = { value, label: label };
+        return acc;
+      }, {} as ProductAttribute) || {};
 
     const ctPrice: CTPrice | undefined =
       ctVariant.prices?.find(

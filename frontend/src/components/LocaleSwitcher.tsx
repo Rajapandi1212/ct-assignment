@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useTransition } from 'react';
 
 type Locale = 'en-US' | 'en-GB' | 'de-DE';
 
@@ -13,6 +13,7 @@ const locales: { value: Locale; label: string; flag: string }[] = [
 
 export default function LocaleSwitcher() {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
   const [locale, setLocale] = useState<Locale>('en-US');
   const [mounted, setMounted] = useState(false);
@@ -45,14 +46,18 @@ export default function LocaleSwitcher() {
   }, []);
 
   const handleLocaleChange = (newLocale: Locale) => {
-    setLocale(newLocale);
     setIsOpen(false);
 
     // Set Next.js locale cookie
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`;
 
-    // Refresh to apply new locale
-    router.refresh();
+    // Use transition and hide body during reload
+    startTransition(() => {
+      setLocale(newLocale);
+      setTimeout(() => {
+        window.location.reload();
+      }, 200);
+    });
   };
 
   // Prevent hydration mismatch by not rendering until mounted
@@ -73,60 +78,113 @@ export default function LocaleSwitcher() {
   }
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 text-white hover:text-neutral-200 transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
-        aria-label="Change language"
-      >
-        <span className="text-xl">{currentLocale.flag}</span>
-        <span className="hidden sm:inline text-sm font-medium">{locale}</span>
-        <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50">
-          {locales.map((loc) => (
-            <button
-              key={loc.value}
-              onClick={() => handleLocaleChange(loc.value)}
-              className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center space-x-3 ${
-                locale === loc.value
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-neutral-700'
-              }`}
+    <>
+      {isPending && (
+        <div className="fixed inset-0 bg-white/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 flex items-center space-x-3">
+            <svg
+              className="w-6 h-6 animate-spin text-primary-600"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              <span className="text-xl">{loc.flag}</span>
-              <span>{loc.label}</span>
-              {locale === loc.value && (
-                <svg
-                  className="w-4 h-4 ml-auto"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </button>
-          ))}
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <span className="text-neutral-700 font-medium">
+              Switching language...
+            </span>
+          </div>
         </div>
       )}
-    </div>
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center space-x-2 text-white hover:text-neutral-200 transition-colors px-3 py-2 rounded-lg hover:bg-white/10 disabled:opacity-50"
+          aria-label="Change language"
+          disabled={isPending}
+        >
+          <span className="text-xl">{currentLocale.flag}</span>
+          <span className="hidden sm:inline text-sm font-medium">{locale}</span>
+          {isPending ? (
+            <svg
+              className="w-4 h-4 animate-spin"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+          ) : (
+            <svg
+              className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          )}
+        </button>
+
+        {isOpen && (
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-1 z-50">
+            {locales.map((loc) => (
+              <button
+                key={loc.value}
+                onClick={() => handleLocaleChange(loc.value)}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center space-x-3 ${
+                  locale === loc.value
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-neutral-700'
+                }`}
+              >
+                <span className="text-xl">{loc.flag}</span>
+                <span>{loc.label}</span>
+                {locale === loc.value && (
+                  <svg
+                    className="w-4 h-4 ml-auto"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

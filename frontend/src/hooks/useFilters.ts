@@ -2,9 +2,8 @@
 
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useCallback } from 'react';
-import { Filter, SortOption } from '@shared/product';
+import { SortOption } from '@shared/product';
 import { useLoading } from '@/contexts/LoadingContext';
-import router from 'next/router';
 
 export function useFilters() {
   const pathname = usePathname();
@@ -73,8 +72,8 @@ export function useFilters() {
   );
 
   const clearAllFilters = useCallback(() => {
-    router.push(pathname);
-  }, [router, pathname]);
+    navigate(pathname);
+  }, [navigate, pathname]);
 
   return {
     searchParams,

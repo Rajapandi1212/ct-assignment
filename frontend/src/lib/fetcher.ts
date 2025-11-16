@@ -1,19 +1,24 @@
 import axios from './axios';
 
-export const fetcher = async (url: string) => {
-  return axios.get(url);
+export const fetcher = async <T = unknown>(
+  url: string,
+  headers?: Record<string, string>
+): Promise<T> => {
+  return axios.get(url, { headers });
 };
 
-export const fetcherWithParams = async (
-  args: readonly [string, Record<string, unknown>]
-) => {
-  const [url, params] = args;
-  return axios.get(url, { params });
+export const fetcherWithParams = async <T = unknown>(
+  url: string,
+  params?: unknown,
+  headers?: Record<string, string>
+): Promise<T> => {
+  return axios.get(url, { params, headers });
 };
 
-export const postFetcher = async (
-  args: readonly [string, Record<string, unknown>]
-) => {
-  const [url, data] = args;
-  return axios.post(url, data);
+export const postFetcher = async <T = unknown>(
+  url: string,
+  data?: unknown,
+  headers?: Record<string, string>
+): Promise<T> => {
+  return axios.post(url, data, { headers });
 };
