@@ -29,7 +29,5 @@ export const requestMiddleware = (
 
   const requestContext = { requestId };
 
-  withRequestContext(requestContext, () => {
-    next();
-  });
+  withRequestContext(requestContext, next);
 };

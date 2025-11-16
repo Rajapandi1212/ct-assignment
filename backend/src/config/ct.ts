@@ -8,3 +8,5 @@ export const ctClientConfig = {
   apiUrl: ENV.CTP_API_URL,
   scopes: ENV.CTP_SCOPES,
 };
+
+export const CT_DEFAULT_LOCALE = 'en-US';

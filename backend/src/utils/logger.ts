@@ -77,7 +77,7 @@ const wrapLogMethod = (level: string) => {
   return (message: string, meta: Record<string, unknown> = {}) => {
     logger.log(level, message, {
       ...meta,
-      requestConext: getRequestContext(), // ✅ Inject request ID dynamically
+      requestContext: getRequestContext(), // ✅ Inject request ID dynamically
     });
   };
 };
