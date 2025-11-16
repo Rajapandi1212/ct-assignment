@@ -12,14 +12,19 @@
   "dependencies": {
     "@commercetools/platform-sdk": "^8.18.0",
     "@commercetools/ts-client": "^4.3.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.18.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",

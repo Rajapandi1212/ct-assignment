@@ -15,6 +15,7 @@ const envSchema = z.object({
   JWT_SECRET_KEY: z.string(),
   SESSION_KEY: z.string(),
   SESSION_EXPIRE_TIME: z.string().default('60'), // minutes
+  ENVIRONMENT: z.enum(['prod', 'dev']).default('prod'),
 });
 
 const parsed = envSchema.safeParse(process.env);

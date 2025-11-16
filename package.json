@@ -14,9 +14,22 @@
     "start:backend": "npm start --prefix backend",
     "start:frontend": "npm start --prefix frontend",
     "prettify": "npm run prettify --prefix backend && npm run prettify --prefix frontend",
-    "format": "npm run format --prefix backend && npm run format --prefix frontend"
+    "format": "npm run format --prefix backend && npm run format --prefix frontend",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  },
+  "lint-staged": {
+    "backend/**/*.ts": [
+      "npx --prefix backend prettier --write",
+      "npx --prefix backend eslint --fix"
+    ],
+    "frontend/**/*.{ts,tsx}": [
+      "npx --prefix frontend prettier --write",
+      "npx --prefix frontend eslint --fix"
+    ]
   }
 }

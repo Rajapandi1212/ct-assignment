@@ -11,7 +11,7 @@ import { ctpClientHTTPAPI } from './client-builder';
 import { ctClientConfig } from '../config/ct';
 
 export abstract class BaseRepository {
-  protected apiRoot!: ApiRoot;
+  private apiRoot!: ApiRoot;
   protected projectKey = ctClientConfig.projectKey;
 
   constructor() {}

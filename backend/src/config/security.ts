@@ -6,5 +6,5 @@ export const JWT_CONFIG = {
 
 export const SESSION_CONFIG = {
   key: ENV.SESSION_KEY,
-  expireMs: Number(ENV.SESSION_EXPIRE_TIME) * 60 * 1000,
+  expireMs: Number(ENV.SESSION_EXPIRE_TIME) * 60 * 60 * 1000,
 };
