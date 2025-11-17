@@ -24,7 +24,10 @@ const colorizedLogFormat = combine(
   colorize({ message: false }),
   timestampFormat,
   align(),
-  printf((info) => `[${info.timestamp}] ${info.level}: ${info.message}`)
+  printf(
+    (info) =>
+      `[${info.timestamp}] ${info.level}: ${info.message} : ${JSON.stringify(info, null, 2)}`
+  )
 );
 const httpFilter = winston.format((info) => {
   // Only pass through if the level is 'http'

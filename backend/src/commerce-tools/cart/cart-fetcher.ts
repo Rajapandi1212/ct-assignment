@@ -11,7 +11,7 @@ export class CartFetcher {
   ): Promise<Cart> {
     const cartRepo = new CartRepository();
 
-    logger.info('RP SessionData', sessionData);
+    logger.info(`RP SessionData :, ${JSON.stringify(sessionData, null, 2)}`);
 
     if (sessionData?.userId !== undefined) {
       return await cartRepo.getForUser(sessionData.userId, locale);
