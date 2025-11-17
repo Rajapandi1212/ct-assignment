@@ -4,6 +4,7 @@ import ProductTile from '@/components/plp/ProductTile';
 import Pagination from '@/components/plp/Pagination';
 import { Filter, Product } from '@shared/product';
 import { productService, ProductQueryParams } from '@/services/product.service';
+import { getLocale } from '@/utils/server-utils';
 
 interface PageProps {
   searchParams: Promise<{
@@ -17,6 +18,7 @@ interface PageProps {
 
 export default async function Home({ searchParams }: PageProps) {
   const params = await searchParams;
+  const locale = await getLocale();
 
   const queryParams: ProductQueryParams = {
     page: Number(params.page) || 1,
@@ -34,7 +36,7 @@ export default async function Home({ searchParams }: PageProps) {
   let error = null;
 
   try {
-    const response = await productService.getProducts(queryParams);
+    const response = await productService.getProducts(queryParams, locale);
     products = response.data.products;
     total = response.data.total;
     facets = response.data.facets;

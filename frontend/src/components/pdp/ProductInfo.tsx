@@ -1,5 +1,7 @@
 'use client';
 
+import { useLocale } from '@/contexts/LocaleContext';
+import { addToCart } from '@/services/cart.service';
 import { Product, ProductVariant } from '@shared/product';
 import { useState, useMemo, useEffect } from 'react';
 
@@ -14,6 +16,7 @@ export default function ProductInfo({
   currentVariant,
   onVariantChange,
 }: ProductInfoProps) {
+  const { locale } = useLocale();
   const [selectedColor, setSelectedColor] = useState<string | null>(
     product?.variants?.[0]?.attributes?.['search-color']?.value as string
   );
@@ -138,6 +141,12 @@ export default function ProductInfo({
   const handleQuantityBlur = () => {
     if (quantity < 1 || isNaN(quantity)) {
       setQuantity(1);
+    }
+  };
+
+  const handleAddToCart = () => {
+    if (currentVariant.sku) {
+      addToCart(currentVariant.sku, quantity, locale);
     }
   };
 
@@ -283,7 +292,10 @@ export default function ProductInfo({
           </button>
         </div>
 
-        <button className="flex-1 bg-primary-600 text-white h-12 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button
+          className="flex-1 bg-primary-600 text-white h-12 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleAddToCart}
+        >
           Add to Cart
         </button>
       </div>

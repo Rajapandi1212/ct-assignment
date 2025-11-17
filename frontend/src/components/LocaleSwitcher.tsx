@@ -1,35 +1,23 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useLocale } from '@/contexts/LocaleContext';
 
 type Locale = 'en-US' | 'en-GB' | 'de-DE';
 
-const locales: { value: Locale; label: string; flag: string }[] = [
+const locales = [
   { value: 'en-US', label: 'English (US)', flag: '🇺🇸' },
   { value: 'en-GB', label: 'English (UK)', flag: '🇬🇧' },
   { value: 'de-DE', label: 'Deutsch', flag: '🇩🇪' },
 ];
 
 export default function LocaleSwitcher() {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const { locale, setLocale } = useLocale();
   const [isOpen, setIsOpen] = useState(false);
-  const [locale, setLocale] = useState<Locale>('en-US');
-  const [mounted, setMounted] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentLocale = locales.find((l) => l.value === locale) || locales[0];
-
-  useEffect(() => {
-    // Read locale from cookie after mount to avoid hydration mismatch
-    const cookieLocale = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('NEXT_LOCALE='))
-      ?.split('=')[1] as Locale;
-    setLocale(cookieLocale || 'en-US');
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,35 +35,19 @@ export default function LocaleSwitcher() {
 
   const handleLocaleChange = (newLocale: Locale) => {
     setIsOpen(false);
+    setIsPending(true);
+
+    // Set the new locale
+    setLocale(newLocale);
 
     // Set Next.js locale cookie
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=${60 * 60 * 24 * 365}`;
 
-    // Use transition and hide body during reload
-    startTransition(() => {
-      setLocale(newLocale);
-      setTimeout(() => {
-        window.location.reload();
-      }, 200);
-    });
+    // Reload the page to apply the new locale
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
-
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return (
-      <div className="relative">
-        <button
-          className="flex items-center space-x-2 text-white hover:text-neutral-200 transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
-          aria-label="Change language"
-          disabled
-        >
-          <div className="w-6 h-6 bg-white/20 rounded animate-pulse"></div>
-          <div className="hidden sm:inline w-12 h-4 bg-white/20 rounded animate-pulse"></div>
-          <div className="w-4 h-4 bg-white/20 rounded animate-pulse"></div>
-        </button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -158,7 +130,7 @@ export default function LocaleSwitcher() {
             {locales.map((loc) => (
               <button
                 key={loc.value}
-                onClick={() => handleLocaleChange(loc.value)}
+                onClick={() => handleLocaleChange(loc.value as Locale)}
                 className={`w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center space-x-3 ${
                   locale === loc.value
                     ? 'bg-primary-50 text-primary-700'

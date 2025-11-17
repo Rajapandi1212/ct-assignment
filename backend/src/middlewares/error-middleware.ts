@@ -4,7 +4,7 @@ import logger from '../utils/logger';
 
 export const errorHandler = (
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) => {
@@ -19,5 +19,5 @@ export const errorHandler = (
     stack: err.stack,
   });
 
-  return formatResponse({ res, statusCode: 500, error });
+  return formatResponse({ req, res, statusCode: 500, error });
 };

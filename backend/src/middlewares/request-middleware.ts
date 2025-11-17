@@ -4,11 +4,13 @@ import { randomUUID } from 'node:crypto';
 import { SESSION_CONFIG } from '../config/security';
 import { SessionData } from '../../../types/session-data';
 import { decodeToken } from '../utils/jwt';
+import { getLocaleFromRequest } from '../utils/get-locale-from-request';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    requestId?: string;
-    sessionData?: SessionData;
+    requestId: string;
+    sessionData: SessionData;
+    locale: string;
   }
 }
 
@@ -27,7 +29,11 @@ export const requestMiddleware = (
 
   req.requestId = requestId;
 
-  const requestContext = { requestId };
+  const locale = getLocaleFromRequest(req);
+
+  req.locale = locale;
+
+  const requestContext = { requestId, locale };
 
   withRequestContext(requestContext, next);
 };

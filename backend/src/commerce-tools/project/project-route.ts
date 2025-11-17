@@ -6,7 +6,7 @@ const router = Router();
 router.get('/', async (req, res, next) => {
   try {
     const project = await getProject();
-    return formatResponse({ res, statusCode: 200, data: project });
+    return formatResponse({ req, res, statusCode: 200, data: project });
   } catch (error) {
     next(error);
   }
@@ -15,7 +15,7 @@ router.get('/', async (req, res, next) => {
 router.get('/productTypes', async (req, res, next) => {
   try {
     const productTypes = await getProductTypes();
-    return formatResponse({ res, statusCode: 200, data: productTypes });
+    return formatResponse({ req, res, statusCode: 200, data: productTypes });
   } catch (error) {
     next(error);
   }

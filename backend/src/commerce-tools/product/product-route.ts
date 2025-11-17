@@ -8,7 +8,7 @@ ProductRouter.post('/', async (req, res, next) => {
   try {
     const locale = getLocaleFromRequest(req);
     const data = await getProducts(locale as string, req.body);
-    return formatResponse({ res, statusCode: 200, data: data });
+    return formatResponse({ req, res, statusCode: 200, data: data });
   } catch (error) {
     next(error);
   }
@@ -22,13 +22,14 @@ ProductRouter.get('/sku/:sku', async (req, res, next) => {
 
     if (!data) {
       return formatResponse({
+        req,
         res,
         statusCode: 404,
         error: { message: `Product not found for sku : ${sku}` },
       });
     }
 
-    return formatResponse({ res, statusCode: 200, data: data });
+    return formatResponse({ req, res, statusCode: 200, data: data });
   } catch (error) {
     next(error);
   }

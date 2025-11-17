@@ -3,11 +3,6 @@ import path from 'path';
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, '..'),
-  i18n: {
-    locales: ['en-US', 'en-GB', 'de-DE'],
-    defaultLocale: 'en-US',
-    localeDetection: false,
-  },
   images: {
     remotePatterns: [
       {

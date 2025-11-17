@@ -1,5 +1,5 @@
 export type SessionData = {
-  cartId?: string;
+  cartId?: Record<string, string>;
   userId?: string;
   email?: string;
   [key: string]: any;

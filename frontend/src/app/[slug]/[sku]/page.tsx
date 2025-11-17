@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { productService } from '@/services/product.service';
 import ProductDetail from '@/components/pdp/ProductDetail';
+import { getLocale } from '@/utils/server-utils';
 
 interface PDPPageProps {
   params: Promise<{
@@ -11,10 +12,11 @@ interface PDPPageProps {
 
 export default async function ProductDetailPage({ params }: PDPPageProps) {
   const { sku } = await params;
+  const locale = await getLocale();
 
   let product = null;
   try {
-    const response = await productService.getProductBySku(sku);
+    const response = await productService.getProductBySku(sku, locale);
     product = response.data;
   } catch (error) {
     console.error('Failed to fetch product:', error);
