@@ -37,6 +37,7 @@ export function formatResponse<T>({
     expires: new Date(Date.now() + SESSION_CONFIG.expireMs),
     httpOnly: true,
     secure: isProd ? true : false,
+    ...(isProd ? { sameSite: 'none' } : {}),
   });
 
   const response: ApiResponse<T> = {
