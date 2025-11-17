@@ -1,5 +1,11 @@
-import { Cart, CartDraft, CartUpdateAction } from '@commercetools/platform-sdk';
+import {
+  Cart as CTCart,
+  CartDraft,
+  CartUpdateAction,
+} from '@commercetools/platform-sdk';
+import { Cart } from '../../../../types/cart';
 import { BaseRepository } from '../base-repo';
+import { CartMapper } from './cart-mapper';
 import logger from '../../utils/logger';
 import { getLocaleInfo } from '../../utils/locale-info';
 
@@ -8,6 +14,13 @@ interface CreateCartParams {
   anonymousId?: string;
   locale: string;
 }
+
+// Expand parameters for cart queries to include discount details
+const CART_EXPAND_PARAMS = [
+  'lineItems[*].discountedPricePerQuantity[*].discountedPrice.includedDiscounts[*].discount',
+  'discountOnTotalPrice.includedDiscounts[*].discount',
+  'discountCodes[*].discountCode',
+];
 
 export class CartRepository extends BaseRepository {
   /**
@@ -23,20 +36,25 @@ export class CartRepository extends BaseRepository {
         .get({
           queryArgs: {
             where: `customerId="${customerId}" AND locale="${locale}"`,
+            expand: CART_EXPAND_PARAMS,
           },
         })
         .execute();
 
-      return (
-        response.body.results[0] || this.createCart({ customerId, locale })
-      );
+      if (response.body.results[0]) {
+        return CartMapper.mapCart(response.body.results[0], locale);
+      }
+
+      const newCart = await this.createCart({ customerId, locale });
+      return CartMapper.mapCart(newCart, locale);
     } catch (error) {
       logger.error('Error getting user cart, creating new one', {
         error,
         customerId,
         locale,
       });
-      return this.createCart({ customerId, locale });
+      const newCart = await this.createCart({ customerId, locale });
+      return CartMapper.mapCart(newCart, locale);
     }
   }
 
@@ -56,37 +74,47 @@ export class CartRepository extends BaseRepository {
         .get({
           queryArgs: {
             where: `anonymousId="${anonymousId}" AND locale="${locale}"`,
+            expand: CART_EXPAND_PARAMS,
           },
         })
         .execute();
 
-      return (
-        response.body.results[0] || this.createCart({ anonymousId, locale })
-      );
+      if (response.body.results[0]) {
+        return CartMapper.mapCart(response.body.results[0], locale);
+      }
+
+      const newCart = await this.createCart({ anonymousId, locale });
+      return CartMapper.mapCart(newCart, locale);
     } catch (error) {
       logger.error('Error getting anonymous cart, creating new one', {
         error,
         anonymousId,
         locale,
       });
-      return this.createCart({ anonymousId, locale });
+      const newCart = await this.createCart({ anonymousId, locale });
+      return CartMapper.mapCart(newCart, locale);
     }
   }
 
   /**
-   * Get cart by its ID
+   * Get cart by its ID with expanded references and map to frontend format
    * @param cartId The ID of the cart
-   * @returns The cart
+   * @param locale The locale for mapping
+   * @returns The mapped cart
    * @throws Error if cart not found or other error occurs
    */
-  public async getById(cartId: string): Promise<Cart> {
+  public async getById(cartId: string, locale: string): Promise<Cart> {
     const response = await this.requestBuilder()
       .carts()
       .withId({ ID: cartId })
-      .get()
+      .get({
+        queryArgs: {
+          expand: CART_EXPAND_PARAMS,
+        },
+      })
       .execute();
 
-    return response.body;
+    return CartMapper.mapCart(response.body, locale);
   }
 
   /**
@@ -98,7 +126,7 @@ export class CartRepository extends BaseRepository {
     customerId,
     anonymousId,
     locale,
-  }: CreateCartParams): Promise<Cart> {
+  }: CreateCartParams): Promise<CTCart> {
     try {
       const { country, currency } = getLocaleInfo(locale);
       const cartDraft: CartDraft = {
@@ -114,6 +142,9 @@ export class CartRepository extends BaseRepository {
         .carts()
         .post({
           body: cartDraft,
+          queryArgs: {
+            expand: CART_EXPAND_PARAMS,
+          },
         })
         .execute();
 
@@ -139,7 +170,8 @@ export class CartRepository extends BaseRepository {
   public async updateCart(
     cartId: string,
     version: number,
-    actions: CartUpdateAction[]
+    actions: CartUpdateAction[],
+    locale: string
   ): Promise<Cart> {
     const response = await this.requestBuilder()
       .carts()
@@ -149,10 +181,145 @@ export class CartRepository extends BaseRepository {
           version,
           actions,
         },
+        queryArgs: {
+          expand: CART_EXPAND_PARAMS,
+        },
       })
       .execute();
 
-    return response.body;
+    return CartMapper.mapCart(response.body, locale);
+  }
+
+  /**
+   * Add a discount code to the cart
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param code The discount code to add
+   * @param locale The locale for mapping
+   * @returns The updated mapped cart
+   */
+  public async addDiscountCode(
+    cartId: string,
+    version: number,
+    code: string,
+    locale: string
+  ): Promise<Cart> {
+    return this.updateCart(
+      cartId,
+      version,
+      [
+        {
+          action: 'addDiscountCode',
+          code,
+        },
+      ],
+      locale
+    );
+  }
+
+  /**
+   * Remove a discount code from the cart
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param discountCodeId The ID of the discount code reference to remove
+   * @param locale The locale for mapping
+   * @returns The updated mapped cart
+   */
+  public async removeDiscountCode(
+    cartId: string,
+    version: number,
+    discountCodeId: string,
+    locale: string
+  ): Promise<Cart> {
+    return this.updateCart(
+      cartId,
+      version,
+      [
+        {
+          action: 'removeDiscountCode',
+          discountCode: {
+            typeId: 'discount-code',
+            id: discountCodeId,
+          },
+        },
+      ],
+      locale
+    );
+  }
+
+  /**
+   * Update shipping and billing addresses
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param address The address to set for both shipping and billing
+   * @param locale The locale for mapping
+   * @returns The updated mapped cart
+   */
+  public async updateAddresses(
+    cartId: string,
+    version: number,
+    address: any,
+    locale: string
+  ): Promise<Cart> {
+    const actions: CartUpdateAction[] = [
+      {
+        action: 'setShippingAddress',
+        address: {
+          firstName: address.firstName,
+          lastName: address.lastName,
+          streetName: address.streetName,
+          streetNumber: address.streetNumber,
+          city: address.city,
+          postalCode: address.postalCode,
+          country: address.country,
+          phone: address.phone,
+          email: address.email,
+        },
+      },
+      {
+        action: 'setBillingAddress',
+        address: {
+          firstName: address.firstName,
+          lastName: address.lastName,
+          streetName: address.streetName,
+          streetNumber: address.streetNumber,
+          city: address.city,
+          postalCode: address.postalCode,
+          country: address.country,
+          phone: address.phone,
+          email: address.email,
+        },
+      },
+    ];
+
+    return this.updateCart(cartId, version, actions, locale);
+  }
+
+  /**
+   * Remove a line item from the cart
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param lineItemId The ID of the line item to remove
+   * @param locale The locale for mapping
+   * @returns The updated mapped cart
+   */
+  public async removeLineItem(
+    cartId: string,
+    version: number,
+    lineItemId: string,
+    locale: string
+  ): Promise<Cart> {
+    return this.updateCart(
+      cartId,
+      version,
+      [
+        {
+          action: 'removeLineItem',
+          lineItemId,
+        },
+      ],
+      locale
+    );
   }
 }
 

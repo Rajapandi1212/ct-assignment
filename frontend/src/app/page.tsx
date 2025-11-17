@@ -35,13 +35,14 @@ export default async function Home({ searchParams }: PageProps) {
   let facets: Filter[] = [];
   let error = null;
 
-  try {
-    const response = await productService.getProducts(queryParams, locale);
+  const response = await productService.getProducts(queryParams, locale);
+
+  if (response.success && response.data) {
     products = response.data.products;
     total = response.data.total;
     facets = response.data.facets;
-  } catch (err) {
-    error = err instanceof Error ? err.message : 'Failed to load products';
+  } else {
+    error = response.error?.message || 'Failed to load products';
   }
 
   if (error) {

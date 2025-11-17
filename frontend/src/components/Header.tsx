@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import LocaleSwitcher from './LocaleSwitcher';
 import { useCart } from '@/services/cart.service';
 
@@ -10,19 +11,20 @@ export default function Header() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
+            <Link href="/" className="flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center hover:opacity-90 transition-opacity">
                 <span className="text-white font-display font-bold text-xl">
                   RP
                 </span>
               </div>
-            </div>
+            </Link>
           </div>
 
           <div className="flex items-center space-x-4">
             <LocaleSwitcher />
 
-            <button
+            <Link
+              href="/checkout"
               className="relative text-white hover:text-neutral-200 transition-colors"
               aria-label="Cart"
             >
@@ -44,7 +46,7 @@ export default function Header() {
                   {count}
                 </span>
               ) : null}
-            </button>
+            </Link>
 
             <button
               className="text-white hover:text-neutral-200 transition-colors"

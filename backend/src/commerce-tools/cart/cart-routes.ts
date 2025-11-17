@@ -1,5 +1,12 @@
 import { Router } from 'express';
-import { getCart, addToCart } from './cart-controller';
+import {
+  getCart,
+  addToCart,
+  applyDiscountCode,
+  removeDiscountCodeFromCart,
+  updateCartAddresses,
+  removeLineItem,
+} from './cart-controller';
 import { formatResponse } from '../../utils/format-response';
 
 const CartRouter = Router();
@@ -29,6 +36,66 @@ CartRouter.post('/addToCart', async (req, res, next) => {
       req,
       res,
       statusCode: 201,
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Apply discount code to cart
+CartRouter.post('/discount/apply', async (req, res, next) => {
+  try {
+    const cart = await applyDiscountCode(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Remove discount code from cart
+CartRouter.post('/discount/remove', async (req, res, next) => {
+  try {
+    const cart = await removeDiscountCodeFromCart(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Update shipping and billing addresses
+CartRouter.post('/addresses', async (req, res, next) => {
+  try {
+    const cart = await updateCartAddresses(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Remove line item from cart
+CartRouter.post('/removeLineItem', async (req, res, next) => {
+  try {
+    const cart = await removeLineItem(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
       data: cart,
     });
   } catch (error) {

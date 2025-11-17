@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { Cart } from '@commercetools/platform-sdk';
+import { Cart } from '../../../../types/cart';
 import { SessionData } from '../../../../types/session-data';
 import { CartRepository } from './cart-repo';
 import logger from '../../utils/logger';
@@ -19,7 +19,7 @@ export class CartFetcher {
 
     if (sessionData?.cartId?.[locale] !== undefined) {
       try {
-        return await cartRepo.getById(sessionData?.cartId?.[locale]);
+        return await cartRepo.getById(sessionData?.cartId?.[locale], locale);
       } catch (error) {
         logger.info(
           `Error fetching the cart ${sessionData?.cartId?.[locale]}, creating a new one. ${error}`

@@ -1,6 +1,7 @@
 import { fetcher, postFetcher } from '@/lib/fetcher';
 import useSWR, { mutate } from 'swr';
-import { Cart, CartResponse, LineItem } from '@shared/cart';
+import { Cart } from '@shared/cart';
+import { ApiResponse } from '@shared/index';
 import { silentMutateOptions } from '@/utils/swr-options';
 import { useLocale } from '@/contexts/LocaleContext';
 
@@ -14,10 +15,10 @@ export const useCart = () => {
     error,
     isLoading,
     mutate: mutateCart,
-  } = useSWR<CartResponse>(
+  } = useSWR<ApiResponse<Cart>>(
     [CART_KEY, locale],
     ([url]) =>
-      fetcher<CartResponse>(url, undefined, { 'Accept-Language': locale }),
+      fetcher<ApiResponse<Cart>>(url, undefined, { 'Accept-Language': locale }),
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -27,11 +28,7 @@ export const useCart = () => {
   const cart = data?.data;
   return {
     cart: cart,
-    count:
-      cart?.lineItems.reduce(
-        (sum: number, item: LineItem) => sum + (item.quantity || 0),
-        0
-      ) || 0,
+    count: cart?.totalLineItemQuantity || 0,
     isLoading,
     error,
     mutate: mutateCart,
@@ -43,20 +40,143 @@ export const addToCart = async (
   sku: string,
   quantity: number = 1,
   locale: string
-): Promise<Cart> => {
+): Promise<ApiResponse<Cart>> => {
   try {
-    const response = await postFetcher<CartResponse>(
+    const response = await postFetcher<ApiResponse<Cart>>(
       `${CART_KEY}/addToCart`,
       { sku, quantity },
       { 'Accept-Language': locale }
     );
 
-    // Only mutate cache after successful API call
-    await mutate([CART_KEY, locale], response, silentMutateOptions);
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
 
-    return response.data;
-  } catch (error) {
+    return response;
+  } catch (error: any) {
     console.error('Failed to add item to cart:', error);
-    throw error;
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to add item to cart',
+      },
+    };
+  }
+};
+
+// Apply discount code to cart
+export const applyDiscountCode = async (
+  code: string,
+  locale: string
+): Promise<ApiResponse<Cart>> => {
+  try {
+    const response = await postFetcher<ApiResponse<Cart>>(
+      `${CART_KEY}/discount/apply`,
+      { code },
+      { 'Accept-Language': locale }
+    );
+
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to apply discount code:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to apply discount code',
+      },
+    };
+  }
+};
+
+// Remove discount code from cart
+export const removeDiscountCode = async (
+  discountCodeId: string,
+  locale: string
+): Promise<ApiResponse<Cart>> => {
+  try {
+    const response = await postFetcher<ApiResponse<Cart>>(
+      `${CART_KEY}/discount/remove`,
+      { discountCodeId },
+      { 'Accept-Language': locale }
+    );
+
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to remove discount code:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to remove discount code',
+      },
+    };
+  }
+};
+
+// Update cart addresses
+export const updateCartAddresses = async (
+  address: any,
+  locale: string
+): Promise<ApiResponse<Cart>> => {
+  try {
+    const response = await postFetcher<ApiResponse<Cart>>(
+      `${CART_KEY}/addresses`,
+      { address },
+      { 'Accept-Language': locale }
+    );
+
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to update addresses:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to update addresses',
+      },
+    };
+  }
+};
+
+// Remove line item from cart
+export const removeLineItem = async (
+  lineItemId: string,
+  locale: string
+): Promise<ApiResponse<Cart>> => {
+  try {
+    const response = await postFetcher<ApiResponse<Cart>>(
+      `${CART_KEY}/removeLineItem`,
+      { lineItemId },
+      { 'Accept-Language': locale }
+    );
+
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to remove line item:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to remove line item',
+      },
+    };
   }
 };
