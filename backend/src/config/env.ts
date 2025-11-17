@@ -16,6 +16,7 @@ const envSchema = z.object({
   SESSION_KEY: z.string(),
   SESSION_EXPIRE_TIME: z.string().default('60'), // minutes
   ENVIRONMENT: z.enum(['prod', 'dev']).default('prod'),
+  FE_URL: z.string().url(),
 });
 
 const parsed = envSchema.safeParse(process.env);
