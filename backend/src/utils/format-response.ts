@@ -28,18 +28,16 @@ export function formatResponse<T>({
   error?: { message: string; code?: string };
   sessionData?: SessionData;
 }) {
+  let formattedSessionData = req?.sessionData || {};
   if (sessionData) {
-    const formattedSessionData = formatSession(
-      req?.sessionData || {},
-      sessionData
-    );
-    const token = generateToken(formattedSessionData);
-    res.cookie(SESSION_CONFIG.key, token, {
-      expires: new Date(Date.now() + SESSION_CONFIG.expireMs),
-      httpOnly: true,
-      secure: isProd ? true : false,
-    });
+    formattedSessionData = formatSession(req?.sessionData || {}, sessionData);
   }
+  const token = generateToken(formattedSessionData);
+  res.cookie(SESSION_CONFIG.key, token, {
+    expires: new Date(Date.now() + SESSION_CONFIG.expireMs),
+    httpOnly: true,
+    secure: isProd ? true : false,
+  });
 
   const response: ApiResponse<T> = {
     success: statusCode >= 200 && statusCode < 300,
