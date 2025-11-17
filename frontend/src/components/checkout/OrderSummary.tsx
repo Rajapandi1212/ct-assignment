@@ -29,34 +29,22 @@ export default function OrderSummary({
   const originalPrice = cart.originalPrice;
   const subtotal = cart.subtotal;
 
-  // Calculate total discount from all sources
-  const totalDiscount = cart.lineItems.reduce((sum, item) => {
-    const itemDiscounts = item.discounts.reduce(
-      (itemSum, discount) => itemSum + discount.value.centAmount,
-      0
-    );
-    return sum + itemDiscounts;
-  }, 0);
+  // Calculate savings from line items (product + line item discounts)
+  const lineItemSavings = originalPrice.centAmount - cart.subtotal.centAmount;
 
-  // Add cart-level discounts
-  const cartLevelDiscount = cart.discounts.reduce(
+  // Calculate cart-level discount savings
+  const cartDiscountSavings = cart.discounts.reduce(
     (sum, discount) => sum + discount.value.centAmount,
     0
   );
 
-  const totalDiscountAmount = totalDiscount + cartLevelDiscount;
+  // Total savings = line item savings + cart discounts (cumulative)
+  const totalSavings = lineItemSavings + cartDiscountSavings;
 
-  // Calculate total savings (original price - subtotal)
-  const totalSavings = originalPrice.centAmount - subtotal.centAmount;
-
-  // Get tax information from backend (accurate from CommerceTools)
   const taxAmount = cart.taxInfo?.taxedPrice?.totalTax.centAmount || 0;
   const taxPortions = cart.taxInfo?.taxPortions || [];
 
-  // Calculate effective tax rate for display
-  const netAmount =
-    cart.taxInfo?.taxedPrice?.totalNet.centAmount || cart.totalPrice.centAmount;
-  const effectiveTaxRate = netAmount > 0 ? (taxAmount / netAmount) * 100 : 0;
+  const effectiveTaxRate = (taxPortions?.[0]?.rate || 0) * 100;
 
   const handleApplyDiscount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,26 +242,27 @@ export default function OrderSummary({
 
           {/* Price Breakdown */}
           <div className="space-y-3 border-t border-neutral-200 pt-4">
-            {totalSavings > 0 && (
-              <div className="flex justify-between text-sm pb-3 border-b border-neutral-100">
-                <span className="text-neutral-600">Original Price</span>
-                <span className="text-neutral-500 line-through">
-                  {formatPrice(originalPrice)}
+            <div className="flex justify-between text-sm">
+              <span className="text-neutral-600">Subtotal</span>
+              <span className="text-neutral-900 font-medium">
+                {formatPrice(originalPrice)}
+              </span>
+            </div>
+
+            {cart.shippingInfo && (
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-600">Shipping</span>
+                <span className="text-neutral-900 font-medium">
+                  {formatPrice(cart.shippingInfo.price)}
                 </span>
               </div>
             )}
 
-            <div className="flex justify-between text-sm">
-              <span className="text-neutral-600">Subtotal</span>
-              <span className="text-neutral-900 font-medium">
-                {formatPrice(subtotal)}
-              </span>
-            </div>
-
+            {/* Your Savings - show cumulative savings */}
             {totalSavings > 0 && (
-              <div className="flex justify-between text-sm bg-green-50 -mx-6 px-6 py-2">
-                <span className="text-green-700 font-medium">
-                  Total Savings
+              <div className="flex justify-between text-sm bg-green-50 -mx-6 px-6 py-2 border-y border-green-100">
+                <span className="text-green-700 font-semibold">
+                  Your Savings
                 </span>
                 <span className="text-green-700 font-bold">
                   -
@@ -286,48 +275,6 @@ export default function OrderSummary({
               </div>
             )}
 
-            {cart.shippingInfo && (
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">Shipping</span>
-                <span className="text-neutral-900 font-medium">
-                  {formatPrice(cart.shippingInfo.price)}
-                </span>
-              </div>
-            )}
-
-            {taxAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-neutral-600">
-                  Tax{' '}
-                  {effectiveTaxRate > 0 && `(${effectiveTaxRate.toFixed(1)}%)`}
-                </span>
-                <span className="text-neutral-900 font-medium">
-                  {formatPrice({
-                    centAmount: taxAmount,
-                    currencyCode: cart.currency,
-                    fractionDigits: subtotal.fractionDigits,
-                  })}
-                </span>
-              </div>
-            )}
-
-            {taxPortions.length > 0 && (
-              <div className="ml-4 space-y-1">
-                {taxPortions.map((portion, idx) => (
-                  <div
-                    key={idx}
-                    className="flex justify-between text-xs text-neutral-500"
-                  >
-                    <span>
-                      {portion.name || 'Tax'} ({(portion.rate * 100).toFixed(1)}
-                      %)
-                    </span>
-                    <span>{formatPrice(portion.amount)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
             <div className="flex justify-between text-lg font-display font-semibold border-t border-neutral-200 pt-3">
               <span className="text-neutral-900">Total</span>
               <span className="text-primary-600">
@@ -336,6 +283,59 @@ export default function OrderSummary({
                   : formatPrice(cart.totalPrice)}
               </span>
             </div>
+
+            {/* Tax Inclusive Notice */}
+            {taxAmount > 0 && (
+              <div className="bg-neutral-50 -mx-6 px-6 py-3 border-t border-neutral-200">
+                <div className="flex items-start gap-2">
+                  <svg
+                    className="w-4 h-4 text-neutral-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-xs text-neutral-600 font-medium">
+                      Tax Included
+                    </p>
+                    <p className="text-xs text-neutral-500 mt-1">
+                      All prices include{' '}
+                      {formatPrice({
+                        centAmount: taxAmount,
+                        currencyCode: cart.currency,
+                        fractionDigits: subtotal.fractionDigits,
+                      })}{' '}
+                      in taxes
+                      {effectiveTaxRate > 0 &&
+                        ` (${effectiveTaxRate.toFixed(1)}%)`}
+                    </p>
+                    {taxPortions.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {taxPortions.map((portion, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between text-xs text-neutral-500"
+                          >
+                            <span>
+                              • {portion.name || 'Tax'} (
+                              {(portion.rate * 100).toFixed(1)}%)
+                            </span>
+                            <span>{formatPrice(portion.amount)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Place Order Button */}

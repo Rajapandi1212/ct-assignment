@@ -79,6 +79,7 @@ export interface Address {
 
 // Shipping
 export interface ShippingInfo {
+  shippingMethodId?: string;
   shippingMethodName?: string;
   price: {
     centAmount: number;
@@ -86,6 +87,19 @@ export interface ShippingInfo {
     fractionDigits: number;
   };
   taxRate?: number;
+}
+
+export interface ShippingMethod {
+  id: string;
+  key?: string;
+  name: string;
+  description?: string;
+  price: {
+    centAmount: number;
+    currencyCode: string;
+    fractionDigits: number;
+  };
+  isDefault: boolean;
 }
 
 // Tax information

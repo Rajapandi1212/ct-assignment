@@ -221,3 +221,70 @@ export const updateCartAddresses = async (req: Request): Promise<Cart> => {
     throw new Error(error?.message || 'Failed to update addresses');
   }
 };
+
+export const getShippingMethods = async (req: Request) => {
+  const { locale } = req;
+  const sessionData = req.sessionData;
+
+  try {
+    // Get current cart
+    const cart = await CartFetcher.fetchCart(sessionData, locale as string);
+
+    // Import shipping repository
+    const { ShippingRepository } = await import('../shipping/shipping-repo');
+    const shippingRepo = new ShippingRepository();
+
+    // Get eligible shipping methods for this cart
+    const shippingMethods = await shippingRepo.getShippingMethodsForCart(
+      cart.id,
+      locale as string
+    );
+
+    logger.info('Fetched shipping methods', {
+      cartId: cart.id,
+      count: shippingMethods.length,
+    });
+    return shippingMethods;
+  } catch (error: any) {
+    logger.error('Error getting shipping methods', {
+      m: error?.message,
+      error,
+      sessionData,
+    });
+    throw new Error(error?.message || 'Failed to get shipping methods');
+  }
+};
+
+export const setShippingMethod = async (req: Request): Promise<Cart> => {
+  const { shippingMethodId } = req.body;
+  const { locale } = req;
+  const sessionData = req.sessionData;
+
+  if (!shippingMethodId) {
+    throw new Error('Shipping method ID required');
+  }
+
+  try {
+    // Get current cart
+    const cart = await CartFetcher.fetchCart(sessionData, locale as string);
+
+    // Set shipping method (repo handles mapping)
+    const updatedCart = await cartRepository.setShippingMethod(
+      cart.id,
+      cart.version,
+      shippingMethodId,
+      locale as string
+    );
+
+    logger.info('Shipping method set', { cartId: cart.id, shippingMethodId });
+    return updatedCart;
+  } catch (error: any) {
+    logger.error('Error setting shipping method', {
+      m: error?.message,
+      error,
+      shippingMethodId,
+      sessionData,
+    });
+    throw new Error(error?.message || 'Failed to set shipping method');
+  }
+};

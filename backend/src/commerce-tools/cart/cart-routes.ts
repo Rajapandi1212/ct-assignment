@@ -6,6 +6,8 @@ import {
   removeDiscountCodeFromCart,
   updateCartAddresses,
   removeLineItem,
+  getShippingMethods,
+  setShippingMethod,
 } from './cart-controller';
 import { formatResponse } from '../../utils/format-response';
 
@@ -92,6 +94,36 @@ CartRouter.post('/addresses', async (req, res, next) => {
 CartRouter.post('/removeLineItem', async (req, res, next) => {
   try {
     const cart = await removeLineItem(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
+      data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Get eligible shipping methods for cart
+CartRouter.get('/shipping-methods', async (req, res, next) => {
+  try {
+    const shippingMethods = await getShippingMethods(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 200,
+      data: shippingMethods,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Set shipping method for cart
+CartRouter.post('/shipping-method', async (req, res, next) => {
+  try {
+    const cart = await setShippingMethod(req);
     return formatResponse({
       req,
       res,

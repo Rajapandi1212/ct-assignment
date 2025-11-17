@@ -321,6 +321,36 @@ export class CartRepository extends BaseRepository {
       locale
     );
   }
+
+  /**
+   * Set shipping method for the cart
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param shippingMethodId The ID of the shipping method to set
+   * @param locale The locale for mapping
+   * @returns The updated mapped cart
+   */
+  public async setShippingMethod(
+    cartId: string,
+    version: number,
+    shippingMethodId: string,
+    locale: string
+  ): Promise<Cart> {
+    return this.updateCart(
+      cartId,
+      version,
+      [
+        {
+          action: 'setShippingMethod',
+          shippingMethod: {
+            typeId: 'shipping-method',
+            id: shippingMethodId,
+          },
+        },
+      ],
+      locale
+    );
+  }
 }
 
 export default new CartRepository();

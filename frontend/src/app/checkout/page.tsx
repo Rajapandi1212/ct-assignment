@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CartSummary from '@/components/checkout/CartSummary';
 import AddressForm from '@/components/checkout/AddressForm';
 import OrderSummary from '@/components/checkout/OrderSummary';
+import ShippingMethodSelector from '@/components/checkout/ShippingMethodSelector';
 import { useState, useEffect } from 'react';
 
 export default function CheckoutPage() {
@@ -81,6 +82,13 @@ export default function CheckoutPage() {
               cartCountry={cart.country}
             />
           </div>
+
+          {/* Shipping Method Selector */}
+          {cart.shippingAddress && (
+            <div className="mt-8">
+              <ShippingMethodSelector cart={cart} />
+            </div>
+          )}
         </div>
 
         {/* Right Column - Order Summary */}

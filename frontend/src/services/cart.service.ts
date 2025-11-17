@@ -1,6 +1,6 @@
 import { fetcher, postFetcher } from '@/lib/fetcher';
 import useSWR, { mutate } from 'swr';
-import { Cart } from '@shared/cart';
+import { Cart, ShippingMethod } from '@shared/cart';
 import { ApiResponse } from '@shared/index';
 import { silentMutateOptions } from '@/utils/swr-options';
 import { useLocale } from '@/contexts/LocaleContext';
@@ -176,6 +176,58 @@ export const removeLineItem = async (
       success: false,
       error: {
         message: error?.message || 'Failed to remove line item',
+      },
+    };
+  }
+};
+
+// Get eligible shipping methods for cart
+export const useShippingMethods = () => {
+  const { locale } = useLocale();
+  const { data, error, isLoading } = useSWR<ApiResponse<ShippingMethod[]>>(
+    ['/v1/carts/shipping-methods', locale],
+    ([url]) =>
+      fetcher<ApiResponse<ShippingMethod[]>>(url, undefined, {
+        'Accept-Language': locale,
+      }),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+    }
+  );
+
+  return {
+    shippingMethods: data?.data || [],
+    isLoading,
+    error,
+  };
+};
+
+// Set shipping method for cart
+export const setShippingMethod = async (
+  shippingMethodId: string,
+  locale: string
+): Promise<ApiResponse<Cart>> => {
+  try {
+    const response = await postFetcher<ApiResponse<Cart>>(
+      `${CART_KEY}/shipping-method`,
+      { shippingMethodId },
+      { 'Accept-Language': locale }
+    );
+
+    // Only mutate cache if successful
+    if (response.success && response.data) {
+      await mutate([CART_KEY, locale], response, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to set shipping method:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to set shipping method',
       },
     };
   }

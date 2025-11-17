@@ -23,32 +23,28 @@ export class CartMapper {
     );
 
     // Calculate original price (before any discounts)
+    const originalPriceCentAmount = ctCart.lineItems.reduce((sum, item) => {
+      // Use the original price (before product discounts)
+      const pricePerItem = item.price.value.centAmount;
+      return sum + pricePerItem * item.quantity;
+    }, 0);
+
     const originalPrice = {
-      centAmount: ctCart.lineItems.reduce((sum, item) => {
-        // Use the original price (before product discounts)
-        const pricePerItem = item.price.value.centAmount;
-        return sum + pricePerItem * item.quantity;
-      }, 0),
+      centAmount: originalPriceCentAmount,
       currencyCode: ctCart.totalPrice.currencyCode,
       fractionDigits: ctCart.totalPrice.fractionDigits,
     };
 
     // Calculate subtotal (after line item discounts, before cart-level discounts)
     // Use net amount if taxedPrice is available, otherwise use totalPrice
-    const subtotal = ctCart.taxedPrice
-      ? {
-          centAmount: ctCart.taxedPrice.totalNet.centAmount,
-          currencyCode: ctCart.taxedPrice.totalNet.currencyCode,
-          fractionDigits: ctCart.taxedPrice.totalNet.fractionDigits,
-        }
-      : {
-          centAmount: ctCart.lineItems.reduce(
-            (sum, item) => sum + item.totalPrice.centAmount,
-            0
-          ),
-          currencyCode: ctCart.totalPrice.currencyCode,
-          fractionDigits: ctCart.totalPrice.fractionDigits,
-        };
+    const subtotal = {
+      centAmount: ctCart.lineItems.reduce(
+        (sum, item) => sum + item.totalPrice.centAmount,
+        0
+      ),
+      currencyCode: ctCart.totalPrice.currencyCode,
+      fractionDigits: ctCart.totalPrice.fractionDigits,
+    };
 
     // Map cart-level discounts
     const cartDiscounts: CartDiscount[] = [];
@@ -80,6 +76,7 @@ export class CartMapper {
     let shippingInfo: ShippingInfo | undefined;
     if (ctCart.shippingInfo) {
       shippingInfo = {
+        shippingMethodId: ctCart.shippingInfo.shippingMethod?.id,
         shippingMethodName: ctCart.shippingInfo.shippingMethodName,
         price: {
           centAmount: ctCart.shippingInfo.price.centAmount,
