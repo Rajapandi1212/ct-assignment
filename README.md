@@ -19,10 +19,7 @@ A fullstack TypeScript monorepo with Node.js/Express backend and Next.js 15 fron
 ```bash
 # Install all dependencies
 npm install
-
-# Or install individually
-npm install --prefix backend
-npm install --prefix frontend
+npm run setup 
 ```
 
 ## Development
