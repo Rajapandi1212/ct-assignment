@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/backend/src/index.js",
     "prettify": "prettier --write \"src/**/*.ts\"",
     "format": "prettier --write \"src/**/*.ts\" && eslint --fix \"src/**/*.ts\""
   },
