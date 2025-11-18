@@ -24,6 +24,7 @@ export default function ProductInfo({
     product?.variants?.[0]?.attributes?.['search-finish']?.value as string
   );
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   // Get all unique colors and finishes from variants
   const { colors, finishes } = useMemo(() => {
@@ -144,9 +145,17 @@ export default function ProductInfo({
     }
   };
 
-  const handleAddToCart = () => {
-    if (currentVariant.sku) {
-      addToCart(currentVariant.sku, quantity, locale);
+  const handleAddToCart = async () => {
+    if (!currentVariant.sku || isAddingToCart) return;
+
+    try {
+      setIsAddingToCart(true);
+      await addToCart(currentVariant.sku, quantity, locale);
+      // The toast notification will be shown by the cart service
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -293,10 +302,37 @@ export default function ProductInfo({
         </div>
 
         <button
-          className="flex-1 bg-primary-600 text-white h-12 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-primary-600 text-white h-12 px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           onClick={handleAddToCart}
+          disabled={isAddingToCart}
         >
-          Add to Cart
+          {isAddingToCart ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Adding...
+            </>
+          ) : (
+            'Add to Cart'
+          )}
         </button>
       </div>
 

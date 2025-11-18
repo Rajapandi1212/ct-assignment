@@ -166,6 +166,32 @@ export default function OrderSummary({
         } lg:max-h-none`}
       >
         <div className="p-6">
+          {/* Promotional Banner */}
+          <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-amber-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-amber-700">
+                  Use coupon code <span className="font-bold">WEL20</span> for
+                  20% off!
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Discount Code Form */}
           <form onSubmit={handleApplyDiscount} className="mb-6">
             <label
