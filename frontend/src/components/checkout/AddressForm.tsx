@@ -70,11 +70,12 @@ export default function AddressForm({
       formData.lastName.trim().length >= 2 &&
       formData.email.trim().length > 0 &&
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) &&
-      formData.phone.trim().length > 0 &&
+      formData.phone.trim().length > 9 &&
+      formData.phone.trim().length < 13 &&
       /^\+?[\d\s-()]+$/.test(formData.phone) &&
       formData.streetName.trim().length >= 2 &&
       formData.city.trim().length >= 2 &&
-      formData.postalCode.trim().length >= 3 &&
+      formData.postalCode.trim().length >= 4 &&
       formData.country.trim().length > 0
     );
   };

@@ -95,7 +95,11 @@ export default function CheckoutPage() {
         <div className="lg:col-span-5 mt-8 lg:mt-0">
           <OrderSummary
             cart={cart}
-            hasValidAddresses={!!cart.shippingAddress && !!cart.billingAddress}
+            hasValidAddresses={
+              !!cart.shippingAddress &&
+              !!cart.billingAddress &&
+              !!cart?.shippingInfo?.shippingMethodId
+            }
           />
         </div>
       </div>

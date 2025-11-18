@@ -417,7 +417,7 @@ export default function OrderSummary({
 
           {!hasValidAddresses && (
             <p className="mt-2 text-xs text-center text-amber-600">
-              Please save your shipping address to continue
+              Please save your shipping address and shipping method to continue
             </p>
           )}
 

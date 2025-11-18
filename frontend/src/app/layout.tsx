@@ -10,8 +10,19 @@ import { CartLoadingProvider } from '@/contexts/CartLoadingContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
-  title: 'Fullstack App',
-  description: 'Next.js + Express Monorepo',
+  title: 'RP Shopping - Your One-Stop Online Store',
+  description:
+    'Discover amazing products at great prices on RP Shopping. Shop now for the latest trends in fashion, electronics, home goods, and more.',
+  keywords: [
+    'shopping',
+    'ecommerce',
+    'online store',
+    'RP Shopping',
+    'fashion',
+    'electronics',
+    'home goods',
+  ],
+  authors: [{ name: 'RP' }],
 };
 
 export default async function RootLayout({

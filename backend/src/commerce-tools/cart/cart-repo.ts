@@ -133,7 +133,7 @@ export class CartRepository extends BaseRepository {
         currency,
         country,
         locale,
-        inventoryMode: 'ReserveOnOrder',
+        inventoryMode: 'None',
         ...(customerId && { customerId }),
         ...(anonymousId && { anonymousId }),
       };

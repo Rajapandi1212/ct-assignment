@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import FilterSection from '@/components/plp/FilterSection';
 import SortSection from '@/components/plp/SortSection';
 import ProductTile from '@/components/plp/ProductTile';
@@ -5,6 +6,12 @@ import Pagination from '@/components/plp/Pagination';
 import { Filter, Product } from '@shared/product';
 import { productService, ProductQueryParams } from '@/services/product.service';
 import { getLocale } from '@/utils/server-utils';
+
+export const metadata: Metadata = {
+  title: 'Shop Latest Products | RP Shopping',
+  description:
+    'Browse our wide selection of products at RP Shopping. Find the best deals on fashion, electronics, home goods, and more.',
+};
 
 interface PageProps {
   searchParams: Promise<{

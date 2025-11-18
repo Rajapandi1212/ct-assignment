@@ -1,3 +1,4 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { productService } from '@/services/product.service';
 import ProductDetail from '@/components/pdp/ProductDetail';
@@ -8,6 +9,45 @@ interface PDPPageProps {
     slug: string;
     sku: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PDPPageProps): Promise<Metadata> {
+  const { sku } = await params;
+  const locale = await getLocale();
+
+  try {
+    const response = await productService.getProductBySku(sku, locale);
+    const product = response.data;
+
+    if (!product) {
+      return {
+        title: 'Product Not Found | RP Shopping',
+        description: 'The requested product could not be found.',
+      };
+    }
+
+    return {
+      title: `${product.name} | RP Shopping`,
+      description:
+        product.description ||
+        `Shop ${product.name} at RP Shopping. ${'Find great deals on quality products.'}`,
+      openGraph: {
+        title: `${product.name} | RP Shopping`,
+        description:
+          product.description || `Shop ${product.name} at RP Shopping.`,
+        images: product.variants?.[0]?.images?.[0]?.url
+          ? [{ url: product.variants?.[0]?.images?.[0]?.url }]
+          : [],
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'Product Details | RP Shopping',
+      description: 'View product details at RP Shopping.',
+    };
+  }
 }
 
 export default async function ProductDetailPage({ params }: PDPPageProps) {
