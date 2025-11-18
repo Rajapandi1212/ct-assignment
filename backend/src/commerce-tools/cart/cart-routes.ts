@@ -18,13 +18,12 @@ const CartRouter = Router();
 CartRouter.get('/', async (req, res, next) => {
   try {
     const cart = await getCart(req);
-    const locale = req.locale;
     return formatResponse({
       res,
       req,
       data: cart,
       statusCode: 200,
-      sessionData: { cartId: { [locale]: cart?.id } },
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -40,6 +39,7 @@ CartRouter.post('/addToCart', async (req, res, next) => {
       res,
       statusCode: 201,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -55,6 +55,7 @@ CartRouter.post('/discount/apply', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -70,6 +71,7 @@ CartRouter.post('/discount/remove', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -85,6 +87,7 @@ CartRouter.post('/addresses', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -100,6 +103,7 @@ CartRouter.post('/removeLineItem', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);
@@ -130,6 +134,7 @@ CartRouter.post('/shipping-method', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+      sessionData: { cartId: { [req.locale]: cart?.id } },
     });
   } catch (error) {
     next(error);

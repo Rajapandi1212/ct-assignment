@@ -109,6 +109,10 @@ export default function OrderSummary({
     setError('');
 
     const response = await placeOrder(locale);
+    setTimeout(() => {
+      setCartLoading(false);
+      setIsPlacingOrder(false);
+    }, 2000);
 
     if (response.success && response.data) {
       // Redirect to order confirmation page
@@ -118,8 +122,6 @@ export default function OrderSummary({
       );
     } else {
       setError(response.error?.message || 'Failed to place order');
-      setCartLoading(false);
-      setIsPlacingOrder(false);
     }
   };
 

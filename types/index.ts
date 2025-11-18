@@ -9,3 +9,4 @@ export interface ApiResponse<T> {
 
 // Re-export commonly used types
 export type { Address } from './cart';
+export type { User } from './user';

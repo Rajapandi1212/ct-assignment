@@ -7,6 +7,7 @@ import LoadingOverlay from '@/components/LoadingOverlay';
 import { LoadingProvider } from '@/contexts/LoadingContext';
 import { LocaleProvider } from '@/contexts/LocaleContext';
 import { CartLoadingProvider } from '@/contexts/CartLoadingContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 export const metadata: Metadata = {
   title: 'Fullstack App',
@@ -30,14 +31,16 @@ export default async function RootLayout({
       <body className="flex flex-col min-h-screen max-w-[1600px] mx-auto">
         <LoadingProvider>
           <LocaleProvider initialLocale={initialLocale}>
-            <CartLoadingProvider>
-              <LoadingOverlay />
-              <Header />
-              <main className="flex-1 pt-16 px-4 sm:px-6 lg:px-8">
-                {children}
-              </main>
-              <Footer />
-            </CartLoadingProvider>
+            <AuthProvider>
+              <CartLoadingProvider>
+                <LoadingOverlay />
+                <Header />
+                <main className="flex-1 pt-16 px-4 sm:px-6 lg:px-8">
+                  {children}
+                </main>
+                <Footer />
+              </CartLoadingProvider>
+            </AuthProvider>
           </LocaleProvider>
         </LoadingProvider>
       </body>

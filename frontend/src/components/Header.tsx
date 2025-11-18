@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import LocaleSwitcher from './LocaleSwitcher';
+import AuthModal from './AuthModal';
 import { useCart } from '@/services/cart.service';
 
 export default function Header() {
   const { count } = useCart();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   return (
     <header className="bg-gradient-to-r from-primary-600 to-secondary-600 fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1600px] z-50 shadow-md">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -49,6 +52,7 @@ export default function Header() {
             </Link>
 
             <button
+              onClick={() => setIsAuthModalOpen(true)}
               className="text-white hover:text-neutral-200 transition-colors"
               aria-label="Account"
             >
@@ -69,6 +73,13 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {isAuthModalOpen && (
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
+      )}
     </header>
   );
 }
