@@ -85,6 +85,16 @@ export class CartMapper {
         },
         taxRate: ctCart.shippingInfo.taxRate?.amount,
       };
+
+      // Add discounted price if available
+      if (ctCart.shippingInfo.discountedPrice) {
+        shippingInfo.discountedPrice = {
+          centAmount: ctCart.shippingInfo.discountedPrice.value.centAmount,
+          currencyCode: ctCart.shippingInfo.discountedPrice.value.currencyCode,
+          fractionDigits:
+            ctCart.shippingInfo.discountedPrice.value.fractionDigits,
+        };
+      }
     }
 
     // Map tax information from taxedPrice

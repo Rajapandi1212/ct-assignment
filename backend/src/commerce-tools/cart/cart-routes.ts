@@ -8,6 +8,7 @@ import {
   removeLineItem,
   getShippingMethods,
   setShippingMethod,
+  placeOrder,
 } from './cart-controller';
 import { formatResponse } from '../../utils/format-response';
 
@@ -129,6 +130,22 @@ CartRouter.post('/shipping-method', async (req, res, next) => {
       res,
       statusCode: 200,
       data: cart,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Place order
+CartRouter.post('/placeOrder', async (req, res, next) => {
+  try {
+    const order = await placeOrder(req);
+    return formatResponse({
+      req,
+      res,
+      statusCode: 201,
+      data: order,
+      sessionData: { cartId: { [req.locale]: undefined } }, // Clear cart from session
     });
   } catch (error) {
     next(error);

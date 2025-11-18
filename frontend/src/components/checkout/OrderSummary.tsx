@@ -2,8 +2,13 @@
 
 import { Cart } from '@shared/cart';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatPrice } from '@/utils/format-price';
-import { applyDiscountCode, removeDiscountCode } from '@/services/cart.service';
+import {
+  applyDiscountCode,
+  removeDiscountCode,
+  placeOrder,
+} from '@/services/cart.service';
 import { useLocale } from '@/contexts/LocaleContext';
 import { useCartLoading } from '@/contexts/CartLoadingContext';
 
@@ -16,12 +21,14 @@ export default function OrderSummary({
   cart,
   hasValidAddresses,
 }: OrderSummaryProps) {
+  const router = useRouter();
   const { locale } = useLocale();
   const { setCartLoading } = useCartLoading();
   const [isOpen, setIsOpen] = useState(true);
   const [discountCode, setDiscountCode] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -38,8 +45,16 @@ export default function OrderSummary({
     0
   );
 
-  // Total savings = line item savings + cart discounts (cumulative)
-  const totalSavings = lineItemSavings + cartDiscountSavings;
+  // Calculate shipping discount savings
+  const shippingSavings =
+    cart.shippingInfo?.discountedPrice &&
+    cart.shippingInfo.discountedPrice.centAmount >= 0
+      ? cart.shippingInfo.price.centAmount -
+        cart.shippingInfo.discountedPrice.centAmount
+      : 0;
+
+  // Total savings = line item savings + cart discounts + shipping discounts (cumulative)
+  const totalSavings = lineItemSavings + cartDiscountSavings + shippingSavings;
 
   const taxAmount = cart.taxInfo?.taxedPrice?.totalTax.centAmount || 0;
   const taxPortions = cart.taxInfo?.taxPortions || [];
@@ -86,6 +101,26 @@ export default function OrderSummary({
     }
 
     setIsRemoving(null);
+  };
+
+  const handlePlaceOrder = async () => {
+    setIsPlacingOrder(true);
+    setCartLoading(true);
+    setError('');
+
+    const response = await placeOrder(locale);
+
+    if (response.success && response.data) {
+      // Redirect to order confirmation page
+      const totalPrice = formatPrice(response.data.totalPrice);
+      router.push(
+        `/order-confirmation?orderNumber=${response.data.orderNumber}&totalPrice=${encodeURIComponent(totalPrice)}`
+      );
+    } else {
+      setError(response.error?.message || 'Failed to place order');
+      setCartLoading(false);
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
@@ -252,9 +287,18 @@ export default function OrderSummary({
             {cart.shippingInfo && (
               <div className="flex justify-between text-sm">
                 <span className="text-neutral-600">Shipping</span>
-                <span className="text-neutral-900 font-medium">
-                  {formatPrice(cart.shippingInfo.price)}
-                </span>
+                <div className="text-right">
+                  {cart.shippingInfo.discountedPrice && (
+                    <span className="text-xs text-neutral-500 line-through block">
+                      {formatPrice(cart.shippingInfo.price)}
+                    </span>
+                  )}
+                  <span className="text-neutral-900 font-medium">
+                    {cart.shippingInfo.discountedPrice
+                      ? formatPrice(cart.shippingInfo.discountedPrice)
+                      : formatPrice(cart.shippingInfo.price)}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -340,23 +384,33 @@ export default function OrderSummary({
 
           {/* Place Order Button */}
           <button
-            disabled={!hasValidAddresses}
+            onClick={handlePlaceOrder}
+            disabled={!hasValidAddresses || isPlacingOrder}
             className="w-full mt-6 px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
-            <span>Place Order</span>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
+            {isPlacingOrder ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span>Placing Order...</span>
+              </>
+            ) : (
+              <>
+                <span>Place Order</span>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </>
+            )}
           </button>
 
           {!hasValidAddresses && (

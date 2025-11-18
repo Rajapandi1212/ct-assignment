@@ -170,6 +170,48 @@ export const removeLineItem = async (req: Request): Promise<Cart> => {
   }
 };
 
+export const placeOrder = async (req: Request): Promise<any> => {
+  const { locale } = req;
+  const sessionData = req.sessionData;
+
+  try {
+    // Get current cart
+    const cart = await CartFetcher.fetchCart(sessionData, locale as string);
+
+    // Validate cart has items
+    if (!cart.lineItems || cart.lineItems.length === 0) {
+      throw new Error('Cart is empty');
+    }
+
+    // Validate addresses
+    if (!cart.shippingAddress || !cart.billingAddress) {
+      throw new Error('Shipping and billing addresses are required');
+    }
+
+    // Create order from cart
+    const order = await cartRepository.createOrderFromCart(
+      cart.id,
+      cart.version,
+      locale as string
+    );
+
+    logger.info('Order placed successfully', {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      cartId: cart.id,
+    });
+
+    return order;
+  } catch (error: any) {
+    logger.error('Error placing order', {
+      m: error?.message,
+      error,
+      sessionData,
+    });
+    throw new Error(error?.message || 'Failed to place order');
+  }
+};
+
 export const updateCartAddresses = async (req: Request): Promise<Cart> => {
   const { address } = req.body;
   const { locale } = req;

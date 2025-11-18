@@ -86,6 +86,11 @@ export interface ShippingInfo {
     currencyCode: string;
     fractionDigits: number;
   };
+  discountedPrice?: {
+    centAmount: number;
+    currencyCode: string;
+    fractionDigits: number;
+  };
   taxRate?: number;
 }
 

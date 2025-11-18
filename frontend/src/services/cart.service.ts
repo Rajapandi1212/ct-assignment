@@ -181,6 +181,32 @@ export const removeLineItem = async (
   }
 };
 
+// Place order
+export const placeOrder = async (locale: string): Promise<ApiResponse<any>> => {
+  try {
+    const response = await postFetcher<ApiResponse<any>>(
+      `${CART_KEY}/placeOrder`,
+      {},
+      { 'Accept-Language': locale }
+    );
+
+    // Clear cart cache if successful
+    if (response.success) {
+      await mutate([CART_KEY, locale], undefined, silentMutateOptions);
+    }
+
+    return response;
+  } catch (error: any) {
+    console.error('Failed to place order:', error);
+    return {
+      success: false,
+      error: {
+        message: error?.message || 'Failed to place order',
+      },
+    };
+  }
+};
+
 // Get eligible shipping methods for cart
 export const useShippingMethods = () => {
   const { locale } = useLocale();

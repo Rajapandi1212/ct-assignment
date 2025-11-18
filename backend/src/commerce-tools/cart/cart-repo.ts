@@ -351,6 +351,63 @@ export class CartRepository extends BaseRepository {
       locale
     );
   }
+
+  /**
+   * Create an order from a cart
+   * @param cartId The ID of the cart
+   * @param version The current version of the cart
+   * @param locale The locale for mapping
+   * @returns The created order with order number
+   */
+  public async createOrderFromCart(
+    cartId: string,
+    version: number,
+    locale: string
+  ): Promise<any> {
+    try {
+      // Generate order number: ORD-YYYYMMDD-RANDOM
+      const date = new Date();
+      const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const orderNumber = `ORD-${dateStr}-${random}`;
+
+      const response = await this.requestBuilder()
+        .orders()
+        .post({
+          body: {
+            cart: {
+              typeId: 'cart',
+              id: cartId,
+            },
+            version,
+            orderNumber,
+          },
+        })
+        .execute();
+
+      logger.info('Order created from cart', {
+        orderId: response.body.id,
+        orderNumber: response.body.orderNumber,
+        cartId,
+      });
+
+      return {
+        id: response.body.id,
+        orderNumber: response.body.orderNumber,
+        orderState: response.body.orderState,
+        totalPrice: response.body.totalPrice,
+        createdAt: response.body.createdAt,
+        locale,
+      };
+    } catch (error) {
+      logger.error('Failed to create order from cart', {
+        error,
+        cartId,
+        version,
+      });
+      throw new Error('Failed to create order');
+    }
+  }
 }
 
 export default new CartRepository();
